@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { driver, Driver, Session, auth } from 'neo4j-driver';
+import { driver, Driver, Session, auth, logging } from 'neo4j-driver';
 import type { Neo4jCredentials, OpenAICredentials, ConnectionState } from '../types/connection';
 
 interface Neo4jContextType extends ConnectionState {
@@ -18,6 +18,83 @@ const STORAGE_KEYS = {
   NEO4J_USERNAME: 'neo4j_research_username',
   OPENAI_API_KEY: 'neo4j_research_openai_key',
 };
+
+type Neo4jDriverError = Error & {
+  code?: string;
+  cause?: unknown;
+  gqlStatus?: string;
+  gqlStatusDescription?: string;
+  diagnosticRecord?: unknown;
+};
+
+function serializeError(error: unknown, depth = 0): unknown {
+  if (depth > 2 || error == null) {
+    return error;
+  }
+
+  if (error instanceof Error) {
+    const neo4jError = error as Neo4jDriverError;
+    return {
+      name: neo4jError.name,
+      message: neo4jError.message,
+      code: neo4jError.code,
+      gqlStatus: neo4jError.gqlStatus,
+      gqlStatusDescription: neo4jError.gqlStatusDescription,
+      diagnosticRecord: neo4jError.diagnosticRecord,
+      stack: neo4jError.stack,
+      cause: serializeError(neo4jError.cause, depth + 1),
+    };
+  }
+
+  if (typeof error === 'object') {
+    return Object.fromEntries(
+      Object.entries(error).map(([key, value]) => [key, serializeError(value, depth + 1)])
+    );
+  }
+
+  return error;
+}
+
+function getErrorMessage(error: unknown): string {
+  const neo4jError = error as Neo4jDriverError | undefined;
+  const message = neo4jError?.message?.trim();
+  const code = neo4jError?.code?.trim();
+
+  if (code && message) {
+    return `${code}: ${message}`;
+  }
+
+  if (message) {
+    return message;
+  }
+
+  if (typeof error === 'string' && error.trim()) {
+    return error;
+  }
+
+  return 'Failed to connect to Neo4j';
+}
+
+function getHelpfulErrorHint(error: unknown): string | null {
+  const neo4jError = error as Neo4jDriverError | undefined;
+  const message = neo4jError?.message?.toLowerCase() ?? '';
+  const code = neo4jError?.code ?? '';
+  const combined = `${code} ${message}`;
+
+  if (combined.includes('unauthorized') || combined.includes('authentication failure')) {
+    return 'Check the Neo4j username and password, and make sure the selected database exists and that the user can access it.';
+  }
+
+  if (combined.includes('certificate') || combined.includes('ssl')) {
+    return 'This can happen when the connection URL or TLS settings do not match the database endpoint. Aura usually requires a neo4j+s:// URL.';
+  }
+
+  if (combined.includes('websocket') || combined.includes('network') || combined.includes('serviceunavailable')) {
+    return 'The browser could not reach the database. Confirm the Neo4j URL is correct and reachable from your network.';
+  }
+
+  return null;
+}
 
 export function Neo4jProvider({ children }: { children: React.ReactNode }) {
   const [driverInstance, setDriverInstance] = useState<Driver | null>(null);
@@ -58,7 +135,10 @@ export function Neo4jProvider({ children }: { children: React.ReactNode }) {
       // Create driver instance with proper auth
       const newDriver = driver(
         neo4j.url,
-        auth.basic(neo4j.username, neo4j.password)
+        auth.basic(neo4j.username, neo4j.password),
+        {
+          logging: logging.console('debug'),
+        }
       );
       
       // Test connection
@@ -88,11 +168,21 @@ export function Neo4jProvider({ children }: { children: React.ReactNode }) {
 
       return true;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to connect to Neo4j';
+      const errorMessage = getErrorMessage(err);
+      const helpfulHint = getHelpfulErrorHint(err);
+      const composedMessage = helpfulHint ? `${errorMessage} ${helpfulHint}` : errorMessage;
+
+      console.error('Neo4j connection failed', {
+        attemptedUrl: neo4j.url,
+        attemptedDatabase: neo4j.database,
+        attemptedUsername: neo4j.username,
+        error: serializeError(err),
+      });
+
       setState(prev => ({
         ...prev,
         isConnecting: false,
-        error: errorMessage,
+        error: composedMessage,
       }));
       return false;
     }
