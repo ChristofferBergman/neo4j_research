@@ -1,122 +1,143 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState, useEffect } from 'react';
+import { Neo4jProvider, useNeo4j } from './context/Neo4jContext';
+import { ConnectionDialog } from './components/ConnectionDialog';
+import { QueryBrowser } from './components/QueryBrowser';
+import {
+  Flex,
+  FilledButton,
+  Typography,
+  SideNavigation,
+  Box,
+} from '@neo4j-ndl/react';
+import './App.css';
 
-function App() {
-  const [count, setCount] = useState(0)
+function AppContent() {
+  const { isConnected, reconnect, neo4jCredentials } = useNeo4j();
+  const [showConnectionDialog, setShowConnectionDialog] = useState(!isConnected);
+  const [activeView, setActiveView] = useState('query');
+
+  useEffect(() => {
+    if (!isConnected) {
+      setShowConnectionDialog(true);
+    }
+  }, [isConnected]);
+
+  const handleReconnect = () => {
+    reconnect();
+    setShowConnectionDialog(true);
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
+    <div className="app-container">
+      <header className="app-header">
+        <Flex flexDirection="row" gap="4" alignItems="center" style={{ width: '100%' }}>
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="16" cy="16" r="12" fill="#018BFF"/>
+            <circle cx="16" cy="8" r="3" fill="white"/>
+            <circle cx="8" cy="20" r="3" fill="white"/>
+            <circle cx="24" cy="20" r="3" fill="white"/>
+            <line x1="16" y1="11" x2="9" y2="18" stroke="white" strokeWidth="1.5"/>
+            <line x1="16" y1="11" x2="23" y2="18" stroke="white" strokeWidth="1.5"/>
+            <line x1="10" y1="20" x2="22" y2="20" stroke="white" strokeWidth="1.5"/>
           </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+          <Typography variant="title-1" style={{ fontWeight: 600 }}>
+            Neo4j Research Assistant
+          </Typography>
+          
+          {!isConnected ? (
+            <FilledButton
+              onClick={() => setShowConnectionDialog(true)}
+              variant="primary"
+              style={{ marginLeft: 'auto', backgroundColor: '#018BFF' }}
+            >
+              Connect to Neo4j
+            </FilledButton>
+          ) : (
+            <Flex flexDirection="row" gap="4" alignItems="center" style={{ marginLeft: 'auto' }}>
+              <Typography variant="body-small" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                Connected to {neo4jCredentials?.database} @ {neo4jCredentials?.url}
+              </Typography>
+              <FilledButton
+                onClick={handleReconnect}
+                variant="primary"
+                style={{ color: 'white', borderColor: 'white' }}
+              >
+                Reconnect
+              </FilledButton>
+            </Flex>
+          )}
+        </Flex>
+      </header>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      <div className="app-main">
+        <nav className="app-sidebar">
+          <SideNavigation ariaLabel="Main navigation">
+            <SideNavigation.NavItem 
+              onClick={() => setActiveView('query')}
+              isActive={activeView === 'query'}
+              label="Query Browser"
+            />
+            <SideNavigation.NavItem 
+              onClick={() => setActiveView('import')}
+              isActive={activeView === 'import'}
+              label="Import Data"
+            />
+            <SideNavigation.NavItem 
+              onClick={() => setActiveView('analysis')}
+              isActive={activeView === 'analysis'}
+              label="Analysis Tools"
+            />
+            <SideNavigation.NavItem 
+              onClick={() => setActiveView('ai')}
+              isActive={activeView === 'ai'}
+              label="AI Query Assistant"
+            />
+          </SideNavigation>
+        </nav>
+
+        <main className="app-content">
+          {activeView === 'query' && <QueryBrowser />}
+          {activeView === 'import' && (
+            <Box style={{ padding: '48px', textAlign: 'center' }}>
+              <Typography variant="title-2">Import Data</Typography>
+              <Typography variant="body-medium" style={{ marginTop: '16px', color: 'var(--ndl-color-text-subtle)' }}>
+                CSV import tools coming soon...
+              </Typography>
+            </Box>
+          )}
+          {activeView === 'analysis' && (
+            <Box style={{ padding: '48px', textAlign: 'center' }}>
+              <Typography variant="title-2">Analysis Tools</Typography>
+              <Typography variant="body-medium" style={{ marginTop: '16px', color: 'var(--ndl-color-text-subtle)' }}>
+                Analysis tools coming soon...
+              </Typography>
+            </Box>
+          )}
+          {activeView === 'ai' && (
+            <Box style={{ padding: '48px', textAlign: 'center' }}>
+              <Typography variant="title-2">AI Query Assistant</Typography>
+              <Typography variant="body-medium" style={{ marginTop: '16px', color: 'var(--ndl-color-text-subtle)' }}>
+                AI-powered query generation coming soon...
+              </Typography>
+            </Box>
+          )}
+        </main>
+      </div>
+
+      <ConnectionDialog 
+        open={showConnectionDialog} 
+        onClose={() => setShowConnectionDialog(false)}
+      />
+    </div>
+  );
 }
 
-export default App
+function App() {
+  return (
+    <Neo4jProvider>
+      <AppContent />
+    </Neo4jProvider>
+  );
+}
+
+export default App;
