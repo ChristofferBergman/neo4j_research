@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { driver, Driver, Session, auth, logging } from 'neo4j-driver';
+import { driver, Driver, Session, auth } from 'neo4j-driver';
 import type { Neo4jCredentials, OpenAICredentials, ConnectionState } from '../types/connection';
 
 interface Neo4jContextType extends ConnectionState {
@@ -96,6 +96,14 @@ function getHelpfulErrorHint(error: unknown): string | null {
   return null;
 }
 
+const browserLogging = {
+  level: 'debug' as const,
+  logger: (level: string, message: string) => {
+    const timestamp = new Date().toISOString();
+    console.log(`[Neo4j ${level.toUpperCase()} ${timestamp}] ${message}`);
+  },
+};
+
 export function Neo4jProvider({ children }: { children: React.ReactNode }) {
   const [driverInstance, setDriverInstance] = useState<Driver | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -137,7 +145,7 @@ export function Neo4jProvider({ children }: { children: React.ReactNode }) {
         neo4j.url,
         auth.basic(neo4j.username, neo4j.password),
         {
-          logging: logging.console('debug'),
+          logging: browserLogging,
         }
       );
       
