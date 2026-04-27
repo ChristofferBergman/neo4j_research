@@ -5,6 +5,7 @@ import { QueryBrowser } from './components/QueryBrowser';
 import {
   Flex,
   FilledButton,
+  NeedleThemeProvider,
   Typography,
   SideNavigation,
   Box,
@@ -134,9 +135,11 @@ function AppContent() {
 
 function App() {
   return (
-    <Neo4jProvider>
-      <AppContent />
-    </Neo4jProvider>
+    <NeedleThemeProvider theme="light" wrapperProps={{ isWrappingChildren: false }}>
+      <Neo4jProvider>
+        <AppContent />
+      </Neo4jProvider>
+    </NeedleThemeProvider>
   );
 }
 

@@ -1,3 +1,4 @@
+import '@neo4j-ndl/base/lib/neo4j-ds-styles.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
