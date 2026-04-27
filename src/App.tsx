@@ -11,6 +11,7 @@ import {
   Box,
 } from '@neo4j-ndl/react';
 import './App.css';
+import { CloudArrowDownIconOutline, CodeBracketSquareIconOutline, Neo4JAiNeutralIcon, PresentationChartLineIconOutline } from '@neo4j-ndl/react/icons';
 
 function AppContent() {
   const { isConnected, reconnect, neo4jCredentials } = useNeo4j();
@@ -27,6 +28,8 @@ function AppContent() {
     reconnect();
     setShowConnectionDialog(true);
   };
+
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <div className="app-container">
@@ -72,27 +75,47 @@ function AppContent() {
 
       <div className="app-main">
         <nav className="app-sidebar">
-          <SideNavigation ariaLabel="Main navigation">
-            <SideNavigation.NavItem 
-              onClick={() => setActiveView('query')}
-              isActive={activeView === 'query'}
-              label="Query Browser"
-            />
-            <SideNavigation.NavItem 
-              onClick={() => setActiveView('import')}
-              isActive={activeView === 'import'}
-              label="Import Data"
-            />
-            <SideNavigation.NavItem 
-              onClick={() => setActiveView('analysis')}
-              isActive={activeView === 'analysis'}
-              label="Analysis Tools"
-            />
-            <SideNavigation.NavItem 
-              onClick={() => setActiveView('ai')}
-              isActive={activeView === 'ai'}
-              label="AI Query Assistant"
-            />
+          <SideNavigation
+            isExpanded={isExpanded}
+            shouldOverlayOnInteraction={true}
+            onPinButtonClick={() => setIsExpanded(!isExpanded)}
+            ariaLabel="Main side navigation"
+          >
+            <SideNavigation.CategoryHeader>
+              What do you want to do?
+            </SideNavigation.CategoryHeader>
+            <SideNavigation.ListItem>
+              <SideNavigation.NavItem 
+                icon={<CodeBracketSquareIconOutline />}
+                onClick={() => setActiveView('query')}
+                isActive={activeView === 'query'}
+                label="Query Browser"
+              />
+            </SideNavigation.ListItem>
+            <SideNavigation.ListItem>
+              <SideNavigation.NavItem 
+                icon={<CloudArrowDownIconOutline />}
+                onClick={() => setActiveView('import')}
+                isActive={activeView === 'import'}
+                label="Import Data"
+              />
+            </SideNavigation.ListItem>
+            <SideNavigation.ListItem>
+              <SideNavigation.NavItem 
+                icon={<PresentationChartLineIconOutline />}
+                onClick={() => setActiveView('analysis')}
+                isActive={activeView === 'analysis'}
+                label="Analysis Tools"
+              />
+            </SideNavigation.ListItem>
+            <SideNavigation.ListItem>
+              <SideNavigation.NavItem 
+                icon={<Neo4JAiNeutralIcon />}
+                onClick={() => setActiveView('ai')}
+                isActive={activeView === 'ai'}
+                label="AI Query Assistant"
+              />
+            </SideNavigation.ListItem>
           </SideNavigation>
         </nav>
 
