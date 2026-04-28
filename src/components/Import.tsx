@@ -60,7 +60,7 @@ type OpenAIResponse = {
 };
 
 const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
-const OPENAI_MODEL = 'gpt-5-mini';
+const OPENAI_MODEL = 'gpt-5.5';
 const CSV_PREVIEW_BYTES = 20_000;
 const CSV_PREVIEW_TIMEOUT_MS = 8_000;
 const IMPORT_PLAN_SCHEMA = {
@@ -211,7 +211,7 @@ async function createImportPlan(
         'Use clear labels, relationship types, and property names that fit the data description.',
         'Prefer MERGE when a stable identifier is evident; otherwise use CREATE.',
         'Always use CALL {} IN TRANSACTIONS to preserve memory.',
-        'Keep this outer form of the import: LOAD CSV WITH HEADERS FROM xxx AS row CALL(row) { ... } IN TRANSACTIONS OF 100 ROWS.',
+        'Keep this outer form of the import query: LOAD CSV WITH HEADERS FROM xxx AS row CALL(row) { ... } IN TRANSACTIONS OF 100 ROWS.',
         'Do not return anything from the import statement.',
         'Do not use APOC procedures. Do not wrap the Cypher in Markdown fences. Do not include a trailing semicolon.',
         'The description should explain the intended graph shape and key assumptions in plain language.',
