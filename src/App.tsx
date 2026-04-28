@@ -87,18 +87,18 @@ function AppContent() {
             </SideNavigation.CategoryHeader>
             <SideNavigation.ListItem>
               <SideNavigation.NavItem 
-                icon={<CodeBracketSquareIconOutline />}
-                onClick={() => setActiveView('query')}
-                isActive={activeView === 'query'}
-                label="Query Browser"
-              />
-            </SideNavigation.ListItem>
-            <SideNavigation.ListItem>
-              <SideNavigation.NavItem 
                 icon={<CloudArrowDownIconOutline />}
                 onClick={() => setActiveView('import')}
                 isActive={activeView === 'import'}
                 label="Import Data"
+              />
+            </SideNavigation.ListItem>
+            <SideNavigation.ListItem>
+              <SideNavigation.NavItem 
+                icon={<CodeBracketSquareIconOutline />}
+                onClick={() => setActiveView('query')}
+                isActive={activeView === 'query'}
+                label="Query Browser"
               />
             </SideNavigation.ListItem>
             <SideNavigation.ListItem>
