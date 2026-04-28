@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Neo4jProvider, useNeo4j } from './context/Neo4jContext';
 import { ConnectionDialog } from './components/ConnectionDialog';
 import { QueryBrowser } from './components/QueryBrowser';
+import { Import } from './components/Import';
 import {
   Flex,
   FilledButton,
@@ -121,14 +122,7 @@ function AppContent() {
 
         <main className="app-content">
           {activeView === 'query' && <QueryBrowser />}
-          {activeView === 'import' && (
-            <Box style={{ padding: '48px', textAlign: 'center' }}>
-              <Typography variant="title-2">Import Data</Typography>
-              <Typography variant="body-medium" style={{ marginTop: '16px', color: 'var(--ndl-color-text-subtle)' }}>
-                CSV import tools coming soon...
-              </Typography>
-            </Box>
-          )}
+          {activeView === 'import' && <Import />}
           {activeView === 'analysis' && (
             <Box style={{ padding: '48px', textAlign: 'center' }}>
               <Typography variant="title-2">Analysis Tools</Typography>

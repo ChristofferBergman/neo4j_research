@@ -262,7 +262,7 @@ async function runGraphQuery(session: Session, query: string): Promise<GraphQuer
 
 export function QueryBrowser({ className }: QueryBrowserProps) {
   const { isConnected, getSession } = useNeo4j();
-  const [query, setQuery] = useState('MATCH (n)-[r]->(m) RETURN n, r, m LIMIT 25');
+  const [query, setQuery] = useState('MATCH (n) OPTIONAL MATCH (n)-[r]->(m) RETURN *');
   const [graphData, setGraphData] = useState<GraphQueryResult | null>(null);
   const [tableData, setTableData] = useState<Record<string, unknown>[]>([]);
   const [isLoading, setIsLoading] = useState(false);

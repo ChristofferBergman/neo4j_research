@@ -75,6 +75,60 @@ html, body, #root {
   font-size: 14px;
 }
 
+/* Import tooling */
+.import-panel {
+  background-color: var(--ndl-color-bg-subtle, #f9fafb);
+  border: 1px solid var(--ndl-color-border-subtle, #e5e7eb);
+}
+
+.import-status {
+  border-radius: 8px;
+  border: 1px solid var(--ndl-color-border-subtle, #e5e7eb);
+  padding: 8px 12px;
+  min-width: 180px;
+  text-align: center;
+}
+
+.import-status-neutral {
+  background-color: #ffffff;
+  color: var(--ndl-color-text-default, #111827);
+}
+
+.import-status-info {
+  background-color: #EFF6FF;
+  border-color: #BFDBFE;
+  color: #1D4ED8;
+}
+
+.import-status-success {
+  background-color: #ECFDF5;
+  border-color: #A7F3D0;
+  color: #059669;
+}
+
+.import-status-error {
+  background-color: #FEF2F2;
+  border-color: #FECACA;
+  color: #DC2626;
+}
+
+.import-output-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(320px, 1.2fr);
+  gap: 16px;
+  min-height: 0;
+}
+
+.import-output-grid textarea {
+  height: 280px;
+  min-height: 280px;
+}
+
+.import-cypher-textarea textarea {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', 'Droid Sans Mono', 'Source Code Pro', monospace;
+  font-size: 14px;
+}
+
 /* Table styling */
 table {
   width: 100%;
@@ -157,5 +211,9 @@ tr:hover {
   .app-sidebar {
     width: 200px;
     padding: 8px 4px;
+  }
+
+  .import-output-grid {
+    grid-template-columns: 1fr;
   }
 }
