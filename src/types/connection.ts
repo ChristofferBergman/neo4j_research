@@ -15,6 +15,7 @@ export interface ConnectionState {
   isConnecting: boolean;
   neo4jCredentials: Neo4jCredentials | null;
   openaiCredentials: OpenAICredentials | null;
+  databaseNodeCount: number | null;
   error: string | null;
 }
 

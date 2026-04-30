@@ -14,16 +14,23 @@ import {
 import './App.css';
 import { CloudArrowDownIconOutline, CodeBracketSquareIconOutline, Neo4JAiNeutralIcon, PresentationChartLineIconOutline } from '@neo4j-ndl/react/icons';
 
+type ActiveView = 'query' | 'import' | 'analysis' | 'ai';
+
 function AppContent() {
-  const { isConnected, reconnect, neo4jCredentials } = useNeo4j();
+  const { isConnected, reconnect, neo4jCredentials, databaseNodeCount } = useNeo4j();
   const [showConnectionDialog, setShowConnectionDialog] = useState(!isConnected);
-  const [activeView, setActiveView] = useState('query');
+  const [activeView, setActiveView] = useState<ActiveView>('query');
 
   useEffect(() => {
     if (!isConnected) {
       setShowConnectionDialog(true);
+      return;
     }
-  }, [isConnected]);
+
+    if (databaseNodeCount !== null) {
+      setActiveView(databaseNodeCount === 0 ? 'import' : 'query');
+    }
+  }, [databaseNodeCount, isConnected]);
 
   const handleReconnect = () => {
     reconnect();

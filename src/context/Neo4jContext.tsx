@@ -27,6 +27,11 @@ type Neo4jDriverError = Error & {
   diagnosticRecord?: unknown;
 };
 
+type Neo4jIntegerLike = {
+  toNumber?: () => number;
+  toString?: () => string;
+};
+
 function serializeError(error: unknown, depth = 0): unknown {
   if (depth > 2 || error == null) {
     return error;
@@ -96,6 +101,30 @@ function getHelpfulErrorHint(error: unknown): string | null {
   return null;
 }
 
+function toNumber(value: unknown): number {
+  if (typeof value === 'number') {
+    return value;
+  }
+
+  if (typeof value === 'bigint') {
+    return Number(value);
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    const candidate = value as Neo4jIntegerLike;
+
+    if (typeof candidate.toNumber === 'function') {
+      return candidate.toNumber();
+    }
+
+    if (typeof candidate.toString === 'function') {
+      return Number(candidate.toString());
+    }
+  }
+
+  return Number(value);
+}
+
 const browserLogging = {
   level: 'debug' as const,
   logger: (level: string, message: string) => {
@@ -112,6 +141,7 @@ export function Neo4jProvider({ children }: { children: React.ReactNode }) {
     isConnecting: false,
     neo4jCredentials: null,
     openaiCredentials: null,
+    databaseNodeCount: null,
     error: null,
   });
 
@@ -137,7 +167,7 @@ export function Neo4jProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const connect = useCallback(async (neo4j: Neo4jCredentials, openai: OpenAICredentials): Promise<boolean> => {
-    setState(prev => ({ ...prev, isConnecting: true, error: null }));
+    setState(prev => ({ ...prev, isConnecting: true, databaseNodeCount: null, error: null }));
 
     try {
       // Create driver instance with proper auth
@@ -155,8 +185,9 @@ export function Neo4jProvider({ children }: { children: React.ReactNode }) {
       // Create session
       const newSession = newDriver.session({ database: neo4j.database });
       
-      // Test with a simple query
-      await newSession.run('RETURN 1 AS test');
+      // Test database access and capture whether there is data to browse.
+      const countResult = await newSession.run('MATCH (n) RETURN count(n) AS nodeCount');
+      const databaseNodeCount = toNumber(countResult.records[0]?.get('nodeCount') ?? 0);
 
       // Save credentials to localStorage (except password)
       localStorage.setItem(STORAGE_KEYS.NEO4J_URL, neo4j.url);
@@ -171,6 +202,7 @@ export function Neo4jProvider({ children }: { children: React.ReactNode }) {
         isConnecting: false,
         neo4jCredentials: neo4j,
         openaiCredentials: openai,
+        databaseNodeCount,
         error: null,
       });
 
@@ -210,6 +242,7 @@ export function Neo4jProvider({ children }: { children: React.ReactNode }) {
       isConnecting: false,
       neo4jCredentials: null,
       openaiCredentials: null,
+      databaseNodeCount: null,
       error: null,
     });
   }, [session, driverInstance]);
@@ -226,6 +259,7 @@ export function Neo4jProvider({ children }: { children: React.ReactNode }) {
       isConnecting: false,
       neo4jCredentials: null,
       openaiCredentials: null,
+      databaseNodeCount: null,
       error: null,
     });
   }, [disconnect]);
